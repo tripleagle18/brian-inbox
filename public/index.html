@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Brian's Inbox">
+<title>Brian's Inbox</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{--blue:#185FA5;--blue-light:#E6F1FB;--blue-mid:#0C447C;--amber:#BA7517;--amber-light:#FAEEDA;--amber-dark:#633806;--red:#A32D2D;--red-light:#FCEBEB;--border:#e0e0e0;--bg:#f7f7f7;--card:#fff;--text:#1a1a1a;--text-muted:#666;--text-hint:#999}
+html,body{height:100%;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text)}
+.app{display:flex;flex-direction:column;height:100vh;height:-webkit-fill-available;max-width:430px;margin:0 auto;background:var(--card)}
+/* Login screen */
+.login-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:20px;padding:40px;background:var(--card)}
+.login-screen h1{font-size:28px;font-weight:700;color:var(--text)}
+.login-screen p{font-size:15px;color:var(--text-muted);text-align:center;line-height:1.5}
+.login-btn{display:flex;align-items:center;gap:10px;padding:14px 24px;background:var(--blue);color:#fff;border:none;border-radius:12px;font-size:16px;font-weight:600;font-family:inherit;cursor:pointer;width:100%;justify-content:center}
+/* Topbar */
+.topbar{display:flex;align-items:center;gap:10px;padding:52px 16px 12px;background:var(--card);border-bottom:0.5px solid var(--border);flex-shrink:0}
+.topbar-title{font-size:20px;font-weight:600;flex:1}
+.topbar-sub{font-size:11px;color:var(--text-muted);display:flex;align-items:center;gap:4px}
+.acct-dot{width:7px;height:7px;border-radius:50%;display:inline-block}
+.ai-pill{font-size:10px;padding:2px 7px;border-radius:20px;background:var(--blue-light);color:var(--blue-mid);font-weight:600}
+.refresh-btn{width:32px;height:32px;border-radius:50%;background:var(--blue-light);border:none;color:var(--blue);cursor:pointer;display:flex;align-items:center;justify-content:center}
+/* Tabs */
+.tabbar{display:flex;background:var(--card);border-bottom:0.5px solid var(--border);flex-shrink:0;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.tabbar::-webkit-scrollbar{display:none}
+.tab{flex:1;min-width:80px;padding:10px 4px 8px;text-align:center;cursor:pointer;border-bottom:2px solid transparent;transition:all 0.15s;user-select:none}
+.tab.active{border-bottom-color:var(--blue);color:var(--blue)}
+.tab-icon{font-size:18px;display:block;margin-bottom:2px}
+.tab-label{font-size:10px;font-weight:500;display:block}
+.tab-badge{display:inline-block;font-size:9px;padding:1px 5px;border-radius:10px;font-weight:600;margin-left:2px;vertical-align:middle}
+.tb-gray{background:#F1EFE8;color:#5F5E5A}
+.tb-blue{background:var(--blue-light);color:var(--blue-mid)}
+.tb-amber{background:var(--amber-light);color:var(--amber-dark)}
+/* Toolbar */
+.toolbar{display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--card);border-bottom:0.5px solid var(--border);flex-shrink:0}
+.search{flex:1;display:flex;align-items:center;gap:6px;background:var(--bg);border-radius:10px;padding:7px 10px;border:0.5px solid var(--border)}
+.search input{border:none;background:transparent;outline:none;font-size:14px;color:var(--text);width:100%;font-family:inherit}
+.tbtn{display:flex;align-items:center;gap:4px;padding:7px 10px;border-radius:8px;border:0.5px solid var(--border);background:var(--card);font-size:12px;font-family:inherit;color:var(--text);cursor:pointer;white-space:nowrap;font-weight:500}
+.tbtn-ai{background:var(--blue-light);color:var(--blue-mid);border-color:transparent}
+/* Bars */
+.junk-bar{display:none;align-items:center;gap:8px;padding:8px 12px;background:var(--amber-light);border-bottom:0.5px solid #EF9F27;flex-shrink:0}
+.junk-bar-label{font-size:12px;color:var(--amber-dark);flex:1;font-weight:500}
+.jbtn{font-size:11px;padding:5px 10px;border-radius:8px;border:none;cursor:pointer;font-family:inherit;font-weight:500}
+.jbtn-sel{background:#F1EFE8;color:#444}
+.jbtn-del{background:var(--red-light);color:var(--red)}
+.toast{display:none;align-items:center;gap:8px;padding:10px 12px;background:#1a1a1a;color:#f5f5f5;font-size:12px;flex-shrink:0}
+.toast-undo{font-size:12px;padding:4px 12px;border-radius:20px;border:0.5px solid #666;background:transparent;color:#ccc;cursor:pointer;font-family:inherit;font-weight:500}
+.toast-bar{height:2px;background:var(--blue);transform-origin:left;animation:shrink 4s linear forwards;width:40px;flex-shrink:0}
+@keyframes shrink{from{transform:scaleX(1)}to{transform:scaleX(0)}}
+.del-confirm{display:none;align-items:center;gap:8px;padding:10px 12px;background:var(--red-light);border-bottom:0.5px solid #F09595;flex-shrink:0;flex-wrap:wrap}
+.del-confirm span{font-size:12px;color:var(--red);flex:1}
+.delbtn{font-size:12px;padding:5px 12px;border-radius:8px;border:none;cursor:pointer;font-family:inherit;font-weight:500}
+.delbtn-yes{background:var(--red);color:#fff}
+.delbtn-no{background:#eee;color:#333}
+.sorting{display:none;align-items:center;gap:8px;padding:10px 12px;background:var(--blue-light);font-size:13px;color:var(--blue-mid);flex-shrink:0}
+/* Email list */
+.email-list{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.email-row{display:flex;align-items:flex-start;gap:10px;padding:12px;border-bottom:0.5px solid var(--border);cursor:pointer;background:var(--card);transition:background 0.1s}
+.email-row.selected{background:#FAEEDA}
+.email-row:active{background:var(--bg)}
+.acct-stripe{width:3px;border-radius:2px;align-self:stretch;flex-shrink:0;min-height:44px}
+.check-box{width:20px;height:20px;border-radius:50%;border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;background:var(--card)}
+.check-box.checked{background:var(--amber);border-color:var(--amber);color:#fff}
+.avatar{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;flex-shrink:0}
+.email-body{flex:1;min-width:0}
+.email-top{display:flex;align-items:center;gap:6px;margin-bottom:3px}
+.from{font-size:14px;color:var(--text);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.unread .from{font-weight:600}
+.etime{font-size:11px;color:var(--text-hint);flex-shrink:0}
+.subject{font-size:13px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-bottom:3px}
+.unread .subject{font-weight:500}
+.preview{font-size:12px;color:var(--text-hint);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.learned-tag{font-size:10px;color:var(--blue);margin-top:3px}
+.unread-dot{width:8px;height:8px;border-radius:50%;background:var(--blue);flex-shrink:0;margin-top:14px}
+.swipe-actions{display:flex;gap:6px;padding:8px 0 2px;flex-wrap:wrap}
+.saction{font-size:10px;padding:4px 8px;border-radius:20px;border:none;cursor:pointer;font-family:inherit;font-weight:600;display:flex;align-items:center;gap:3px}
+.sa-imp{background:var(--blue-light);color:var(--blue-mid)}
+.sa-junk{background:var(--amber-light);color:var(--amber-dark)}
+.sa-unsure{background:#F1EFE8;color:#5F5E5A}
+.empty{display:flex;flex-direction:column;align-items:center;justify-content:center;height:200px;color:var(--text-hint);gap:8px}
+.empty i{font-size:36px}
+/* AI bar */
+.ai-bar{display:flex;align-items:center;gap:8px;padding:8px 12px;padding-bottom:calc(8px + env(safe-area-inset-bottom));background:var(--bg);border-top:0.5px solid var(--border);flex-shrink:0}
+.ai-input{flex:1;padding:8px 12px;border-radius:20px;border:0.5px solid var(--border);background:var(--card);font-size:14px;font-family:inherit;color:var(--text);outline:none}
+.ai-send{width:34px;height:34px;border-radius:50%;background:var(--blue);border:none;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.ai-resp{padding:8px 12px;background:var(--blue-light);font-size:12px;color:var(--blue-mid);line-height:1.5;display:none;flex-shrink:0}
+.spinner{display:inline-block;width:12px;height:12px;border:2px solid rgba(24,95,165,0.2);border-top-color:var(--blue);border-radius:50%;animation:spin 0.7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:16px;color:var(--text-muted);font-size:14px}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <!-- Login Screen -->
+  <div id="login-screen" class="login-screen">
+    <i class="ti ti-mail" style="font-size:56px;color:var(--blue)"></i>
+    <h1>Brian's Inbox</h1>
+    <p>Your AI-powered inbox manager. Connect your Gmail to get started.</p>
+    <button class="login-btn" onclick="login()">
+      <i class="ti ti-brand-google" style="font-size:20px"></i>
+      Sign in with Google
+    </button>
+    <p style="font-size:11px;color:var(--text-hint);text-align:center">Only your inbox is accessed. Nothing is stored.</p>
+  </div>
+
+  <!-- Main App (hidden until logged in) -->
+  <div id="main-app" style="display:none;flex-direction:column;height:100%">
+    <div class="topbar">
+      <div style="flex:1">
+        <div class="topbar-title">Brian's Inbox</div>
+        <div style="display:flex;align-items:center;gap:8px;margin-top:3px">
+          <span class="topbar-sub"><span class="acct-dot" style="background:#185FA5"></span>badamsrpa@gmail.com</span>
+          <span class="topbar-sub"><span class="acct-dot" style="background:#3B6D11"></span>redsandsvein</span>
+          <span class="topbar-sub"><span class="acct-dot" style="background:#9FE1CB"></span>yahoo</span>
+        </div>
+      </div>
+      <span class="ai-pill"><i class="ti ti-sparkles"></i> AI on</span>
+      <button class="refresh-btn" onclick="loadEmails()" title="Refresh"><i class="ti ti-refresh" style="font-size:16px"></i></button>
+    </div>
+
+    <div class="tabbar">
+      <div class="tab active" onclick="setFolder('all',this)"><i class="ti ti-inbox tab-icon"></i><span class="tab-label">All <span class="tab-badge tb-gray" id="nb-all">0</span></span></div>
+      <div class="tab" onclick="setFolder('important',this)"><i class="ti ti-star tab-icon"></i><span class="tab-label">Important <span class="tab-badge tb-blue" id="nb-important">0</span></span></div>
+      <div class="tab" onclick="setFolder('junk',this)"><i class="ti ti-trash tab-icon"></i><span class="tab-label">Junk <span class="tab-badge tb-amber" id="nb-junk">0</span></span></div>
+      <div class="tab" onclick="setFolder('unsure',this)"><i class="ti ti-help tab-icon"></i><span class="tab-label">Unsure <span class="tab-badge tb-gray" id="nb-unsure">0</span></span></div>
+    </div>
+
+    <div class="toolbar">
+      <div class="search"><i class="ti ti-search" style="font-size:14px;color:var(--text-hint)"></i><input placeholder="Search..." oninput="searchEmails(this.value)" id="search-inp"></div>
+      <button class="tbtn tbtn-ai" onclick="runAISort()"><i class="ti ti-sparkles" style="font-size:13px"></i> Sort</button>
+    </div>
+
+    <div id="sorting" class="sorting"><span class="spinner"></span> AI is sorting your emails…</div>
+    <div id="toast" class="toast"><i class="ti ti-check" style="font-size:14px;color:#9FE1CB"></i><span id="toast-msg" style="flex:1"></span><button class="toast-undo" onclick="undoLast()"><i class="ti ti-arrow-back-up" style="font-size:12px"></i> Undo</button><div id="toast-bar" class="toast-bar"></div></div>
+    <div id="del-confirm" class="del-confirm"><i class="ti ti-alert-triangle" style="font-size:14px;color:var(--red)"></i><span id="del-label">Delete?</span><button class="delbtn delbtn-yes" onclick="confirmDelete()"><i class="ti ti-trash" style="font-size:11px"></i> Delete</button><button class="delbtn delbtn-no" onclick="cancelDelete()">Cancel</button><span style="font-size:10px;color:var(--red);width:100%">Moves to Gmail Trash</span></div>
+    <div id="junk-bar" class="junk-bar"><span class="junk-bar-label" id="junk-label">Select to delete</span><button class="jbtn jbtn-sel" onclick="selectAll()">Select all</button><button class="jbtn jbtn-sel" onclick="deselectAll()">Deselect</button><button class="jbtn jbtn-del" id="del-btn" style="opacity:0.4;pointer-events:none" onclick="requestDelete()"><i class="ti ti-trash" style="font-size:11px"></i> Delete</button></div>
+    <div id="ai-resp" class="ai-resp"></div>
+    <div class="email-list" id="email-list"><div class="loading-screen"><span class="spinner" style="width:24px;height:24px;border-width:3px"></span>Loading your inbox…</div></div>
+    <div class="ai-bar">
+      <i class="ti ti-sparkles" style="font-size:16px;color:var(--blue);flex-shrink:0"></i>
+      <input class="ai-input" id="ai-inp" placeholder="Ask AI about your inbox…" onkeydown="if(event.key==='Enter')askAI()">
+      <button class="ai-send" onclick="askAI()"><i class="ti ti-arrow-up" style="font-size:16px"></i></button>
+    </div>
+  </div>
+</div>
+
+<script>
+// Token management
+let tokens = null;
+let emails = [];
+const learnedSenders = {};
+let currentFolder = 'all';
+let searchQuery = '';
+let selected = new Set();
+let undoStack = [];
+let toastTimer = null;
+
+function login() { window.location.href = '/auth/login'; }
+
+function saveTokens(t) {
+  tokens = t;
+  try { localStorage.setItem('gmail_tokens', JSON.stringify(t)); } catch(e) {}
+}
+
+function loadTokens() {
+  try {
+    const t = localStorage.getItem('gmail_tokens');
+    if (t) tokens = JSON.parse(t);
+  } catch(e) {}
+}
+
+// Check for tokens in URL (after OAuth callback)
+function checkURLTokens() {
+  const params = new URLSearchParams(window.location.search);
+  const tokenParam = params.get('tokens');
+  if (tokenParam) {
+    try {
+      const t = JSON.parse(decodeURIComponent(tokenParam));
+      saveTokens(t);
+      window.history.replaceState({}, '', '/');
+    } catch(e) {}
+  }
+}
+
+function showApp() {
+  document.getElementById('login-screen').style.display = 'none';
+  const main = document.getElementById('main-app');
+  main.style.display = 'flex';
+}
+
+async function loadEmails() {
+  if (!tokens) return;
+  document.getElementById('email-list').innerHTML = '<div class="loading-screen"><span class="spinner" style="width:24px;height:24px;border-width:3px"></span>Loading your inbox…</div>';
+  try {
+    const res = await fetch('/api/emails', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tokens })
+    });
+    const data = await res.json();
+    if (data.error) {
+      if (data.error.includes('invalid') || data.error.includes('expired')) {
+        tokens = null;
+        localStorage.removeItem('gmail_tokens');
+        location.reload();
+        return;
+      }
+      throw new Error(data.error);
+    }
+    if (data.tokens) saveTokens(data.tokens);
+    emails = data.emails.map(e => ({ ...e, folder: learnedSenders[e.from] || 'all' }));
+    renderList();
+    showToast(`Loaded ${emails.length} emails`);
+  } catch(err) {
+    document.getElementById('email-list').innerHTML = '<div class="empty"><i class="ti ti-wifi-off"></i><span>Could not load emails</span></div>';
+  }
+}
+
+function initials(n) { return n.split(' ').filter(Boolean).map(w=>w[0]).join('').toUpperCase().slice(0,2) || '?'; }
+function fmtDate(iso) {
+  try {
+    const d = new Date(iso), now = new Date(), diff = (now-d)/864e5;
+    if(diff<1) return d.toLocaleTimeString([],{hour:'numeric',minute:'2-digit'});
+    if(diff<2) return 'Yesterday';
+    if(diff<7) return d.toLocaleDateString([],{weekday:'short'});
+    return d.toLocaleDateString([],{month:'short',day:'numeric'});
+  } catch(e) { return ''; }
+}
+function avatarColor(name) {
+  const c=[['#E6F1FB','#185FA5'],['#EAF3DE','#3B6D11'],['#EEEDFE','#3C3489'],['#FAEEDA','#633806'],['#FCEBEB','#791F1F'],['#E1F5EE','#085041'],['#FBEAF0','#72243E']];
+  let h=0; for(const x of name) h=(h*31+x.charCodeAt(0))%c.length; return c[h];
+}
+
+function getVisible() {
+  return emails.filter(e => {
+    if(currentFolder !== 'all' && e.folder !== currentFolder) return false;
+    if(searchQuery) { const q=searchQuery.toLowerCase(); if(!e.from.toLowerCase().includes(q)&&!e.subject.toLowerCase().includes(q)&&!e.preview.toLowerCase().includes(q)) return false; }
+    return true;
+  });
+}
+
+function actionBtns(e) {
+  const defs={important:'<i class="ti ti-star" style="font-size:10px"></i> Important',junk:'<i class="ti ti-trash" style="font-size:10px"></i> Junk',unsure:'<i class="ti ti-help" style="font-size:10px"></i> Unsure'};
+  const cls={important:'saction sa-imp',junk:'saction sa-junk',unsure:'saction sa-unsure'};
+  return Object.keys(defs).filter(f=>f!==e.folder).map(f=>`<button class="${cls[f]}" onclick="moveEmail(event,'${e.id}','${f}')">${defs[f]}</button>`).join('');
+}
+
+function renderList() {
+  const list = document.getElementById('email-list');
+  const vis = getVisible();
+  updateBadges(); updateJunkBar();
+  if(!vis.length) { list.innerHTML='<div class="empty"><i class="ti ti-inbox"></i><span>Nothing here</span></div>'; return; }
+  const isJunk = currentFolder === 'junk';
+  list.innerHTML = vis.map(e => {
+    const [bg,fg] = avatarColor(e.from);
+    return `<div class="email-row ${e.unread?'unread':''} ${selected.has(e.id)?'selected':''}" onclick="${isJunk?`toggleSel(event,'${e.id}')`:`openEmail('${e.id}')`}">
+      ${isJunk?`<div class="check-box ${selected.has(e.id)?'checked':''}" onclick="toggleSel(event,'${e.id}')">${selected.has(e.id)?'<i class="ti ti-check" style="font-size:11px"></i>':''}</div>`:`<div class="unread-dot" style="${e.unread?'':'opacity:0'}"></div>`}
+      <div class="acct-stripe" style="background:#185FA5"></div>
+      <div class="avatar" style="background:${bg};color:${fg}">${initials(e.from)}</div>
+      <div class="email-body">
+        <div class="email-top"><span class="from">${e.from}</span><span class="etime">${fmtDate(e.date)}</span></div>
+        <div class="subject">${e.subject}</div>
+        <div class="preview">${e.preview}</div>
+        ${learnedSenders[e.from]?`<div class="learned-tag"><i class="ti ti-brain" style="font-size:10px"></i> AI learned → ${learnedSenders[e.from]}</div>`:''}
+        ${!isJunk?`<div class="swipe-actions">${actionBtns(e)}</div>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function moveEmail(ev, id, folder) {
+  if(ev) ev.stopPropagation();
+  const e = emails.find(x=>x.id===id); if(!e) return;
+  const prev = {id, folder:e.folder, learned:learnedSenders[e.from]};
+  e.folder = folder; learnedSenders[e.from] = folder;
+  undoStack.push({type:'move', prev, email:e});
+  showToast(`Moved to ${folder}. AI learned ${e.from}.`);
+  renderList();
+}
+
+function openEmail(id) {
+  const e = emails.find(x=>x.id===id); if(!e) return;
+  e.unread = false; renderList();
+  showAIResp(`<b>${e.from}</b> — ${e.subject}<br><span style="opacity:0.8">Ask me to summarize, reply, or take action.</span>`);
+}
+
+function toggleSel(ev, id) { ev.stopPropagation(); if(selected.has(id))selected.delete(id);else selected.add(id); updateJunkBar(); renderList(); }
+function selectAll() { getVisible().forEach(e=>selected.add(e.id)); updateJunkBar(); renderList(); }
+function deselectAll() { selected.clear(); updateJunkBar(); renderList(); }
+
+function updateJunkBar() {
+  const bar=document.getElementById('junk-bar'),lbl=document.getElementById('junk-label'),btn=document.getElementById('del-btn');
+  if(currentFolder==='junk'){bar.style.display='flex';lbl.textContent=selected.size?`${selected.size} selected`:'Select to delete';btn.style.opacity=selected.size?'1':'0.4';btn.style.pointerEvents=selected.size?'auto':'none';}
+  else{bar.style.display='none';}
+}
+
+function requestDelete() { if(!selected.size) return; document.getElementById('del-label').textContent=`Move ${selected.size} email${selected.size>1?'s':''} to Trash?`; document.getElementById('del-confirm').style.display='flex'; }
+function cancelDelete() { document.getElementById('del-confirm').style.display='none'; }
+
+async function confirmDelete() {
+  const ids = [...selected];
+  const snap = emails.filter(e=>ids.includes(e.id)).map(e=>({...e}));
+  document.getElementById('del-confirm').style.display='none';
+  showToast(`Moving ${ids.length} email${ids.length>1?'s':''} to Trash…`, false);
+  try {
+    const res = await fetch('/api/delete', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ tokens, messageIds: ids })
+    });
+    const data = await res.json();
+    if(data.tokens) saveTokens(data.tokens);
+    for(let i=emails.length-1;i>=0;i--) { if(ids.includes(emails[i].id)) emails.splice(i,1); }
+    undoStack.push({type:'delete', snap});
+    selected.clear();
+    showToast(`Moved ${ids.length} email${ids.length>1?'s':''} to Gmail Trash ✓`);
+  } catch(err) {
+    showToast('Delete failed — try again.');
+  }
+  renderList();
+}
+
+function undoLast() {
+  const a = undoStack.pop(); if(!a) return; dismissToast();
+  if(a.type==='move'){const e=emails.find(x=>x.id===a.prev.id);if(e){e.folder=a.prev.folder;if(a.prev.learned!==undefined)learnedSenders[e.from]=a.prev.learned;else delete learnedSenders[e.from];}showToast(`Undone — moved back to ${a.prev.folder}.`,false);}
+  else if(a.type==='sort'){a.snap.forEach(s=>{const e=emails.find(x=>x.id===s.id);if(e)e.folder=s.folder;});showToast('Sort undone.',false);}
+  renderList();
+}
+
+function updateBadges() {
+  document.getElementById('nb-all').textContent = emails.length;
+  document.getElementById('nb-important').textContent = emails.filter(e=>e.folder==='important').length;
+  document.getElementById('nb-junk').textContent = emails.filter(e=>e.folder==='junk').length;
+  document.getElementById('nb-unsure').textContent = emails.filter(e=>e.folder==='unsure').length;
+}
+
+function setFolder(f, el) {
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active')); el.classList.add('active');
+  currentFolder=f; selected.clear(); document.getElementById('del-confirm').style.display='none';
+  document.getElementById('search-inp').value=''; searchQuery=''; renderList();
+}
+
+function searchEmails(q) { searchQuery=q; renderList(); }
+
+async function runAISort() {
+  const bar = document.getElementById('sorting'); bar.style.display='flex';
+  const toSort = emails.filter(e=>e.folder==='all');
+  if(!toSort.length){bar.style.display='none';showToast('Nothing left to sort.');return;}
+  const snap = toSort.map(e=>({id:e.id,folder:e.folder}));
+  const prompt = `You are an email sorter for Brian Adams, a radiologist/PA-C in St. George Utah who runs Red Sands Vein and Laser Institute. Categorize each email as "important", "junk", or "unsure".
+Important: work, medical, scheduling, QGenda, personal messages from real people, security alerts, GitHub, Vercel, calendar invites, anything needing action.
+Junk: marketing, promos, newsletters, Facebook suggestions, YouTube recommendations, social media.
+Unsure: anything ambiguous.
+Reply ONLY with valid JSON array, no markdown. Example: [{"id":"abc","folder":"important"}]
+Emails: ${JSON.stringify(toSort.map(e=>({id:e.id,from:e.from,subject:e.subject,preview:e.preview})))}`;
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1000,messages:[{role:'user',content:prompt}]})});
+    const data = await res.json();
+    const raw = data.content?.find(b=>b.type==='text')?.text||'[]';
+    const results = JSON.parse(raw.replace(/```json|```/g,'').trim());
+    results.forEach(r=>{const e=emails.find(x=>x.id===r.id);if(e)e.folder=learnedSenders[e.from]||r.folder;});
+    undoStack.push({type:'sort',snap});
+    bar.style.display='none'; renderList();
+    showToast(`Sorted — ${emails.filter(e=>e.folder==='important').length} important, ${emails.filter(e=>e.folder==='junk').length} junk, ${emails.filter(e=>e.folder==='unsure').length} unsure.`);
+  } catch{bar.style.display='none';showToast('Sort failed — try again.');}
+}
+
+async function askAI() {
+  const inp=document.getElementById('ai-inp'); const q=inp.value.trim(); if(!q) return; inp.value='';
+  showAIResp('<span class="spinner"></span> thinking…');
+  try {
+    const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:400,messages:[{role:'user',content:`You are Brian Adams' email assistant. Radiologist/PA-C in St George Utah. Inbox: ${emails.length} emails, ${emails.filter(e=>e.folder==='important').length} important, ${emails.filter(e=>e.folder==='junk').length} junk. User asked: "${q}". Reply in 1-2 sentences.`}]})});
+    const data=await res.json();
+    showAIResp(data.content?.find(b=>b.type==='text')?.text||'No response.');
+  } catch{showAIResp('Could not reach AI.');}
+}
+
+function showToast(msg,startTimer=true) {
+  const t=document.getElementById('toast'); document.getElementById('toast-msg').textContent=msg; t.style.display='flex';
+  const bar=document.getElementById('toast-bar'); bar.style.animation='none'; void bar.offsetWidth;
+  if(startTimer){bar.style.animation='shrink 4s linear forwards';if(toastTimer)clearTimeout(toastTimer);toastTimer=setTimeout(()=>{t.style.display='none';},4000);}
+  else{bar.style.animation='none';if(toastTimer)clearTimeout(toastTimer);}
+}
+function dismissToast(){document.getElementById('toast').style.display='none';if(toastTimer)clearTimeout(toastTimer);}
+function showAIResp(html){const a=document.getElementById('ai-resp');a.style.display='block';a.innerHTML=`<i class="ti ti-sparkles" style="font-size:12px;margin-right:4px"></i>${html}`;}
+
+// Init
+checkURLTokens();
+loadTokens();
+if(tokens) { showApp(); loadEmails(); }
+</script>
+</body>
+</html>
