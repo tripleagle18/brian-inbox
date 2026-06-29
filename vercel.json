@@ -5,6 +5,7 @@
     { "source": "/api/emails", "destination": "/api/emails" },
     { "source": "/api/delete", "destination": "/api/delete" },
     { "source": "/api/sort", "destination": "/api/sort" },
-    { "source": "/api/ask", "destination": "/api/ask" }
+    { "source": "/api/ask", "destination": "/api/ask" },
+    { "source": "/api/email-body", "destination": "/api/email-body" }
   ]
 }
