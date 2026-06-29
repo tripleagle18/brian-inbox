@@ -407,20 +407,13 @@ async function runAISort() {
   const toSort=emails.filter(e=>e.folder==='all');
   if(!toSort.length){bar.style.display='none';showToast('Nothing left to sort.');return;}
   const snap=toSort.map(e=>({id:e.id,folder:e.folder}));
-  const prompt=`You are an email sorter for Brian Adams, a radiologist/PA-C in St. George Utah who runs Red Sands Vein and Laser Institute. Categorize each email as "important", "junk", or "unsure".
-Important: work, medical, scheduling, QGenda, personal messages from real people, security alerts, GitHub, Vercel, calendar invites, anything needing action.
-Junk: marketing, promos, newsletters, Facebook suggestions, YouTube recommendations, social media notifications.
-Unsure: anything ambiguous.
-Reply ONLY with valid JSON array, no markdown. Example: [{"id":"abc","folder":"important"}]
-Emails: ${JSON.stringify(toSort.map(e=>({id:e.id,from:e.from,subject:e.subject,preview:e.preview})))}`;
   try {
-    const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1000,messages:[{role:'user',content:prompt}]})});
+    const res=await fetch('/api/sort',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({emails:toSort.map(e=>({id:e.id,from:e.from,subject:e.subject,preview:e.preview}))})});
     const data=await res.json();
-    const raw=data.content?.find(b=>b.type==='text')?.text||'[]';
-    const results=JSON.parse(raw.replace(/```json|```/g,'').trim());
-    results.forEach(r=>{const e=emails.find(x=>x.id===r.id);if(e)e.folder=learnedSenders[e.from]||r.folder;});
+    if(data.error) throw new Error(data.error);
+    data.results.forEach(r=>{const e=emails.find(x=>x.id===r.id);if(e)e.folder=learnedSenders[e.from]||r.folder;});
     undoStack.push({type:'sort',snap});
-    saveState(); // Save AI sort results
+    saveState();
     bar.style.display='none'; renderList();
     showToast(`Sorted — ${emails.filter(e=>e.folder==='important').length} important, ${emails.filter(e=>e.folder==='junk').length} junk, ${emails.filter(e=>e.folder==='unsure').length} unsure.`);
   } catch{bar.style.display='none';showToast('Sort failed — try again.');}
@@ -430,9 +423,9 @@ async function askAI() {
   const inp=document.getElementById('ai-inp'); const q=inp.value.trim(); if(!q)return; inp.value='';
   showAIResp('<span class="spinner"></span> thinking…');
   try {
-    const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:400,messages:[{role:'user',content:`You are Brian Adams' email assistant. Radiologist/PA-C St George Utah. Inbox: ${emails.length} emails, ${emails.filter(e=>e.folder==='important').length} important, ${emails.filter(e=>e.folder==='junk').length} junk. Asked: "${q}". Reply in 1-2 sentences.`}]})});
+    const res=await fetch('/api/ask',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({question:q,context:`Inbox: ${emails.length} emails, ${emails.filter(e=>e.folder==='important').length} important, ${emails.filter(e=>e.folder==='junk').length} junk.`})});
     const data=await res.json();
-    showAIResp(data.content?.find(b=>b.type==='text')?.text||'No response.');
+    showAIResp(data.text||'No response.');
   } catch{showAIResp('Could not reach AI.');}
 }
 
