@@ -1,0 +1,52 @@
+const { google } = require('googleapis');
+
+module.exports = async (req, res) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  if (req.method === 'OPTIONS') return res.status(200).end();
+
+  try {
+    const { tokens, messageId } = req.body;
+    const oauth2Client = new google.auth.OAuth2(
+      process.env.GOOGLE_CLIENT_ID,
+      process.env.GOOGLE_CLIENT_SECRET,
+      process.env.GOOGLE_REDIRECT_URI
+    );
+    oauth2Client.setCredentials(tokens);
+    const gmail = google.gmail({ version: 'v1', auth: oauth2Client });
+
+    const detail = await gmail.users.messages.get({
+      userId: 'me',
+      id: messageId,
+      format: 'full'
+    });
+
+    // Extract body text
+    let body = '';
+    const payload = detail.data.payload;
+
+    function extractText(part) {
+      if (!part) return '';
+      if (part.mimeType === 'text/plain' && part.body && part.body.data) {
+        return Buffer.from(part.body.data, 'base64').toString('utf-8');
+      }
+      if (part.parts) {
+        for (const p of part.parts) {
+          const text = extractText(p);
+          if (text) return text;
+        }
+      }
+      return '';
+    }
+
+    body = extractText(payload);
+
+    // If no plain text, try to get snippet
+    if (!body) body = detail.data.snippet || '';
+
+    res.json({ body, tokens: oauth2Client.credentials });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
